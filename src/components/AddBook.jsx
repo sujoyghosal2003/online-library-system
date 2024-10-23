@@ -1,9 +1,10 @@
+// src/components/AddBook.jsx
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addBook } from '../redux/booksSlice'; 
+import { addBook } from '../redux/bookSlice'; 
 import { useNavigate } from 'react-router-dom';
 
-const AddBook = () => {
+const AddBook = ({ onAddBook }) => {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -11,27 +12,28 @@ const AddBook = () => {
     description: '',
     rating: '',
   });
+  const [error, setError] = useState(''); // State to handle errors
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const { title, author, category, description, rating } = formData;
 
+    // Basic validation
     if (!title || !author || !category || !description || !rating) {
-      alert('Please fill all fields');
+      setError('Please fill in all fields');
       return;
     }
 
-    const parsedRating = parseInt(rating);
-    if (parsedRating < 1 || parsedRating > 5) {
-      alert('Rating must be between 1 and 5');
+    // Rating validation
+    const parsedRating = parseInt(rating, 10);
+    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      setError('Rating must be a number between 1 and 5');
       return;
     }
 
     const newBook = {
-      id: Date.now(), // Use timestamp for a unique ID
       title,
       author,
       category,
@@ -39,9 +41,27 @@ const AddBook = () => {
       rating: parsedRating,
     };
 
-    // Dispatching the addBook action with the new book as payload
+    // Dispatch the action to add a new book
     dispatch(addBook(newBook)); 
-    navigate('/browse'); // Navigating to the browse page after adding the book
+    // Call the onAddBook function to update the book list in the parent component
+    if (onAddBook) {
+      onAddBook(newBook);
+    }
+
+    // Clear form after submission
+    setFormData({
+      title: '',
+      author: '',
+      category: '',
+      description: '',
+      rating: '',
+    });
+
+    // Clear any existing error
+    setError('');
+
+    // Navigate to the browse page after adding the book
+    navigate('/browse');
   };
 
   const handleChange = (e) => {
@@ -52,15 +72,18 @@ const AddBook = () => {
     }));
   };
 
+  const { title, author, category, description, rating } = formData;
+
   return (
     <div>
       <h1>Add a New Book</h1>
+      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Display error message */}
       <form onSubmit={handleSubmit}>
         <input 
           type="text" 
           name="title" 
           placeholder="Title" 
-          value={formData.title} 
+          value={title} 
           onChange={handleChange} 
           required 
         />
@@ -68,7 +91,7 @@ const AddBook = () => {
           type="text" 
           name="author" 
           placeholder="Author" 
-          value={formData.author} 
+          value={author} 
           onChange={handleChange} 
           required 
         />
@@ -76,31 +99,38 @@ const AddBook = () => {
           type="text" 
           name="category" 
           placeholder="Category" 
-          value={formData.category} 
+          value={category} 
           onChange={handleChange} 
           required 
         />
         <textarea 
           name="description" 
           placeholder="Description" 
-          value={formData.description} 
+          value={description} 
           onChange={handleChange} 
           required 
         />
         <input 
           type="number" 
           name="rating" 
-          placeholder="Rating (out of 5)" 
-          value={formData.rating} 
+          placeholder="Rating (1 to 5)" 
+          value={rating} 
           onChange={handleChange} 
           required 
           min="1" 
           max="5" 
         />
-        <button type="submit">Add Book</button>
+        <button type="submit" >Add Book</button>
       </form>
     </div>
   );
+  if (!Array.isArray(books) || books.length === 0) {
+    return <div>
+      <h1>Book Added!</h1>
+      <Link to="/">Back to Home & see</Link>
+    </div>;
+  }
 };
 
 export default AddBook;
+ 
