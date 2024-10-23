@@ -63,7 +63,7 @@ const BrowseBooks = () => {
             </li>
           ))
         ) : (
-          <li>Books found {category ? `in ${category}` : 'matching your search'}.</li>
+          <li>Books found {category ? `in ${category}` : '.'}.</li>
         )}
       </ul>
 
